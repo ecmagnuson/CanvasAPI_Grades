@@ -1,0 +1,5 @@
+{
+    "API_URL": "https://canvas.wisc.edu/"      
+    ,
+    "API_KEY": "ENTER HERE (KEEP THE QUOTES)"
+}
