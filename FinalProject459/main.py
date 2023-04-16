@@ -12,6 +12,22 @@ def credentials():
         d = json.load(f)
     return d
 
+def get_courses():
+    # Get a list of all of the active canvas class which you are a teacher
+    d = credentials()
+    API_URL = d["API_URL"]
+    API_KEY = d["API_KEY"]
+    headers = {"Authorization": "Bearer " + API_KEY}
+    url = f"{API_URL}/courses"
+    params = { #API https://canvas.instructure.com/doc/api/courses.html
+        "enrollment_type": "teacher", 
+        "enrollment_state": "active", 
+        "include": ["sections"]
+    }
+    response = requests.get(url, headers=headers, params=params)
+    courses = response.json()
+    return courses
+
 def get_a_course():
     #return a Course object that the user picked
     courses = get_courses()
@@ -29,21 +45,25 @@ def get_a_course():
         except (ValueError, IndexError):
             print("Enter a digit corresponding to the course")
 
-def get_courses():
-    # Get a list of all of the active canvas class which you are a teacher
-    d = credentials()
-    API_URL = d["API_URL"]
-    API_KEY = d["API_KEY"]
-    headers = {"Authorization": "Bearer " + API_KEY}
-    url = f"{API_URL}/courses"
-    params = { #API https://canvas.instructure.com/doc/api/courses.html
-        "enrollment_type": "teacher", 
-        "enrollment_state": "active", 
-        "include": ["sections"]
-    }
-    response = requests.get(url, headers=headers, params=params)
-    courses = response.json()
-    return courses
+def get_section(course_id):
+    #return a Section object corresponding to the user input
+    sections = get_sections(course_id)
+    for i, section in enumerate(sections):
+        print(f"({i}) --" , section["name"])
+    while True:
+        try:
+            print(f"\nWhat section do you want to get?")
+            print("You can leave this blank if you want to get all sections.")
+            choice = input("> ")
+            print()
+            if choice == "":
+                # No desired section
+                return None
+            else:
+                #choice = int(choice) # TODO this is a bit hacky
+                return sections[int(choice)]
+        except (ValueError, IndexError):
+            print("Enter a digit corresponding to the section")
 
 def get_sections(course_id):
     # Get a list of all of the sections for a specific course
@@ -51,11 +71,8 @@ def get_sections(course_id):
     API_URL = d["API_URL"]
     API_KEY = d["API_KEY"]
     headers = {"Authorization": "Bearer " + API_KEY}
-    params = { #API https://canvas.instructure.com/doc/api/sections.html
-        "include": ["students"]
-    }
     url = f"{API_URL}/courses/{course_id}/sections"
-    response = requests.get(url, headers=headers, params=params)
+    response = requests.get(url, headers=headers)
     sections = response.json()
     return sections
 
@@ -67,11 +84,11 @@ def main():
     # download the assignments
     
     course = get_a_course()
-    sections = get_sections(course["id"])
+    section = get_section(course["id"])
 
-    for s in sections:
-        print(s)
-        print()
+    if section is not None:
+        print(section["name"])
+
     
 if __name__ == "__main__":
     sys.exit(main())
