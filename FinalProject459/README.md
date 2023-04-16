@@ -1,3 +1,5 @@
+Initially I used the canvas API python repo that is on github, but for this project I want to directly use the requests library
+
 ## How to use this program:
 
 1. In Auth.txt set your API_URL accordingly:
