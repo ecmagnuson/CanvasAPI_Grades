@@ -5,34 +5,23 @@ import os
 import requests
 import sys
 
-def credentials():
-    # Get the API_URL and API_KEY for canvas credentials
-    auth = os.path.join(os.path.dirname(__file__), 'auth.json')
-    with open(auth, "r") as f:
-        d = json.load(f)
-    return d
+from canvas import Canvas
 
 def get_courses():
     # Get a list of all of the active canvas class which you are a teacher
-    d = credentials()
-    API_URL = d["API_URL"]
-    API_KEY = d["API_KEY"]
-    headers = {"Authorization": "Bearer " + API_KEY}
-    url = f"{API_URL}/courses"
+    c = Canvas()
     params = { #API https://canvas.instructure.com/doc/api/courses.html
-        "enrollment_type": "teacher", 
-        "enrollment_state": "active", 
-        "include": ["sections"]
-    }
-    response = requests.get(url, headers=headers, params=params)
-    courses = response.json()
+            "enrollment_type": "teacher", 
+            "enrollment_state": "active", 
+            "include": ["sections"]
+    }   
+    courses = c.get(**params).json()
     return courses
 
 def get_a_course():
     #return a Course object that the user picked
     courses = get_courses()
     print(f"There are {len(courses)} active courses in your Canvas page in which you are a teacher.")
-
     for i, course in enumerate(courses):
         print(f"({i}) --" , course["name"])
     while True:
@@ -67,13 +56,8 @@ def get_section(course_id):
 
 def get_sections(course_id):
     # Get a list of all of the sections for a specific course
-    d = credentials()
-    API_URL = d["API_URL"]
-    API_KEY = d["API_KEY"]
-    headers = {"Authorization": "Bearer " + API_KEY}
-    url = f"{API_URL}/courses/{course_id}/sections"
-    response = requests.get(url, headers=headers)
-    sections = response.json()
+    c = Canvas()
+    sections = c.get(f"/{course_id}/sections").json()
     return sections
 
 def main():
@@ -88,7 +72,6 @@ def main():
 
     if section is not None:
         print(section["name"])
-
     
 if __name__ == "__main__":
     sys.exit(main())
