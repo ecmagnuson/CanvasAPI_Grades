@@ -7,17 +7,6 @@ import sys
 
 from canvas import Canvas
 
-def get_courses():
-    # Get a list of all of the active canvas class which you are a teacher
-    c = Canvas()
-    params = { #API https://canvas.instructure.com/doc/api/courses.html
-            "enrollment_type": "teacher", 
-            "enrollment_state": "active", 
-            "include": ["sections"]
-    }   
-    courses = c.get(**params).json()
-    return courses
-
 def get_a_course():
     #return a Course object that the user picked
     courses = get_courses()
@@ -34,7 +23,20 @@ def get_a_course():
         except (ValueError, IndexError):
             print("Enter a digit corresponding to the course")
 
-def get_section(course_id):
+def get_courses():
+    # Get a list of all of the active canvas class which you are a teacher
+    # https://canvas.instructure.com/doc/api/courses.html
+    # url:GET|/api/v1/courses
+    c = Canvas()
+    params = { 
+            "enrollment_type": "teacher", 
+            "enrollment_state": "active", 
+            "include": ["sections"]
+    }   
+    courses = c.get(**params).json()
+    return courses
+
+def get_a_section(course_id):
     #return a Section object corresponding to the user input
     sections = get_sections(course_id)
     for i, section in enumerate(sections):
@@ -56,8 +58,10 @@ def get_section(course_id):
 
 def get_sections(course_id):
     # Get a list of all of the sections for a specific course
+    # https://canvas.instructure.com/doc/api/sections.html
+    # url:GET|/api/v1/courses/:course_id/sections
     c = Canvas()
-    sections = c.get(f"/{course_id}/sections").json()
+    sections = c.get(f"{course_id}/sections").json()
     return sections
 
 def main():
@@ -68,10 +72,18 @@ def main():
     # download the assignments
     
     course = get_a_course()
-    section = get_section(course["id"])
+    section = get_a_section(course["id"])
+
+    if section is None:
+        #get all students
+        pass
+    else:
+        # get students from one section
+        pass 
 
     if section is not None:
         print(section["name"])
+        print(section["id"])
     
 if __name__ == "__main__":
     sys.exit(main())
