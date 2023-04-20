@@ -5,7 +5,7 @@ import os
 import requests
 import sys
 
-from canvas import Canvas
+from canvas import CanvasRequests
 
 def get_a_course():
     #return a Course object that the user picked
@@ -27,7 +27,7 @@ def get_courses():
     # Get a list of all of the active canvas class which you are a teacher
     # https://canvas.instructure.com/doc/api/courses.html
     # url:GET|/api/v1/courses
-    c = Canvas()
+    c = CanvasRequests()
     params = { 
             "enrollment_type": "teacher", 
             "enrollment_state": "active", 
@@ -60,7 +60,7 @@ def get_sections(course_id):
     # Get a list of all of the sections for a specific course
     # https://canvas.instructure.com/doc/api/sections.html
     # url:GET|/api/v1/courses/:course_id/sections
-    c = Canvas()
+    c = CanvasRequests()
     sections = c.get(f"{course_id}/sections").json()
     return sections
 
