@@ -18,6 +18,6 @@ class Canvas:
     def get(self, url = "", **kwargs):
         API_URL = self.d["API_URL"]
         API_KEY = self.d["API_KEY"]
+        full_url = API_URL + "/courses/" + url
         headers = {"Authorization": "Bearer " + API_KEY}
-        full_url = API_URL + "/courses" + "/" + url
         return requests.get(full_url, headers=headers, params=kwargs)
