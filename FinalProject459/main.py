@@ -31,7 +31,6 @@ def get_courses():
     params = { 
             "enrollment_type": "teacher", 
             "enrollment_state": "active", 
-            "include": ["sections"]
     }   
     courses = c.get(**params).json()
     return courses
@@ -60,9 +59,25 @@ def get_sections(course_id):
     # Get a list of all of the sections for a specific course
     # https://canvas.instructure.com/doc/api/sections.html
     # url:GET|/api/v1/courses/:course_id/sections
+    params = {
+        "include": ["enrollments", "students"]
+    }
     c = CanvasRequests(f"/{course_id}/sections")
-    sections = c.get().json()
+    sections = c.get(**params).json()
     return sections
+
+def get_all_students(course_id):
+    # Get a list of all of the students in a course
+    #url:GET /api/v1/courses/:course_id/search_users 
+    c = CanvasRequests(f"/{course_id}/users")
+    params = { 
+        "enrollment_state": ["active"],
+        "enrollment_type": ["student"],
+        "per_page": "100" # Defaults to 10 if not set.
+        #Need to change if more than 100 students
+    }   
+    students = c.get(**params).json()
+    return students
 
 def main():
     # get the course you want
@@ -74,16 +89,15 @@ def main():
     course = get_a_course()
     section = get_a_section(course["id"])
 
-    if section is None:
-        #get all students
-        pass
-    else:
-        # get students from one section
-        pass 
-
     if section is not None:
-        print(section["name"])
-        print(section["id"])
+        students = section["students"]
+    else:
+        students = get_all_students(course["id"])
+
+    print(len(students))
+    for s in students:
+        print(s)
+        print()
     
 if __name__ == "__main__":
     sys.exit(main())
