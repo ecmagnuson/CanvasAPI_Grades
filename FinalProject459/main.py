@@ -60,8 +60,8 @@ def get_sections(course_id):
     # Get a list of all of the sections for a specific course
     # https://canvas.instructure.com/doc/api/sections.html
     # url:GET|/api/v1/courses/:course_id/sections
-    c = CanvasRequests()
-    sections = c.get(f"{course_id}/sections").json()
+    c = CanvasRequests(f"/{course_id}/sections")
+    sections = c.get().json()
     return sections
 
 def main():
