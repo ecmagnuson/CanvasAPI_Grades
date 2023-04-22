@@ -8,7 +8,6 @@ class CanvasRequests:
     def __init__(self, url = ""):
         self.url = url
         self.d = self.credentials()
-        self.full_url = self.d["API_URL"] + self.url
 
     def credentials(self):
         # Get the API_URL and API_KEY for canvas credentials
