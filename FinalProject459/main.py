@@ -27,7 +27,7 @@ def get_courses():
     # Get a list of all of the active canvas class which you are a teacher
     # https://canvas.instructure.com/doc/api/courses.html
     # url:GET|/api/v1/courses
-    c = CanvasRequests()
+    c = CanvasRequests("/courses")
     params = { 
             "enrollment_type": "teacher", 
             "enrollment_state": "active", 
@@ -59,14 +59,14 @@ def get_sections(course_id):
     # Get a list of all of the sections for a specific course
     # https://canvas.instructure.com/doc/api/sections.html
     # url:GET|/api/v1/courses/:course_id/sections
-    c = CanvasRequests(f"/{course_id}/sections")
+    c = CanvasRequests(f"/courses/{course_id}/sections")
     sections = c.get().json()
     return sections
 
 def get_all_students(course_id):
     # Get a list of all of the students in a course
-    #url:GET /api/v1/courses/:course_id/search_users 
-    c = CanvasRequests(f"/{course_id}/users")
+    #url:GET /api/v1/courses/:course_id/users 
+    c = CanvasRequests(f"/courses/{course_id}/users")
     params = { 
         "enrollment_state": ["active"],
         "enrollment_type": ["student"],
@@ -79,13 +79,21 @@ def get_all_students(course_id):
 def get_section_students(course_id, section_id):
     # Get a list of a specific section in a course
     # url:GET|/api/v1/courses/:course_id/sections/:id
-    c = CanvasRequests(f"/{course_id}/sections/{section_id}")
+    c = CanvasRequests(f"/courses/{course_id}/sections/{section_id}")
     params = { 
         "include": ["enrollments", "students"]
     }  
     section_info = c.get(**params).json()
     students = section_info["students"]
     return students
+
+def get_group0(course_id):
+    # url:GET|/api/v1/courses/:course_id/group_categories
+    c = CanvasRequests(f"/courses/{course_id}/group_categories")
+    print(c.full_url)
+    groups = c.get().json()
+    return groups[0]
+
 
 def main():
     # get the course you want
@@ -101,9 +109,21 @@ def main():
         students = get_section_students(course["id"], section["id"])
     else:
         students = get_all_students(course["id"])
-
-    for s in students:
-        print(s["name"])
     
+    group = get_group0(course["id"])
+    print(group)
+
+    print()
+
+    group_id = group["id"]
+#https://canvas.wisc.edu/api/v1group_categories/40575/groups
+    # url:GET|/api/v1/group_categories/:group_category_id/groups
+    c = CanvasRequests(f"/group_categories/{group_id}/groups")
+    print(c.full_url)
+
+    response = c.get().json()
+    print(response)
+
+
 if __name__ == "__main__":
     sys.exit(main())
