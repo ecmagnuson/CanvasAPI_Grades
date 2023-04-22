@@ -4,6 +4,7 @@ import json
 import os
 import requests
 import sys
+from dataclasses import dataclass
 
 from canvas import CanvasRequests
 
@@ -63,42 +64,115 @@ def get_sections(course_id):
     sections = c.get().json()
     return sections
 
-def get_all_students(course_id):
-    # Get a list of all of the students in a course
-    #url:GET /api/v1/courses/:course_id/users 
-    c = CanvasRequests(f"/courses/{course_id}/users")
+@dataclass
+class Student:
+    # An object representing some useful attributes for each student
+    name: str 
+    u_id: str 
+    group_ids: list[str]
+    chosen_group_name: str
+
+def all_students(course_id):
+    # Get all student enrollments for a course
+    # url:GET|/api/v1/courses/:course_id/enrollments
+    c = CanvasRequests(f"/courses/{course_id}/enrollments")
     params = { 
-        "enrollment_state": ["active"],
-        "enrollment_type": ["student"],
-        "per_page": "100" # Defaults to 10 if not set.
-        #Need to change if more than 100 students
-    }   
-    students = c.get(**params).json()
+        "type": ["StudentEnrollment"],
+        "include": ["group_ids"],
+        "per_page": "500"
+    } 
+    enrollments = c.get(**params).json() 
+    students = populate_student(enrollments)
     return students
 
-def get_section_students(course_id, section_id):
-    # Get a list of a specific section in a course
-    # url:GET|/api/v1/courses/:course_id/sections/:id
-    c = CanvasRequests(f"/courses/{course_id}/sections/{section_id}")
+def section_students(section_id):
+    # Get student enrollments for one section.
+    # url:GET|/api/v1/sections/:section_id/enrollments
+    c = CanvasRequests(f"/sections/{section_id}/enrollments")
     params = { 
-        "include": ["enrollments", "students"]
-    }  
-    section_info = c.get(**params).json()
-    students = section_info["students"]
+        "type": ["StudentEnrollment"],
+        "include": ["group_ids"],
+        "per_page": "100"
+    } 
+    enrollments = c.get(**params).json() 
+    students = populate_student(enrollments)
     return students
 
-def get_group0(course_id):
+def populate_student(enrollments):
+    # create the Student dataclass objects from a list of enrollements
+    students = []
+    for e in enrollments:
+        user = e["user"]
+        name = user["name"]
+        u_id = user["id"]
+        group_ids = user["group_ids"]
+        students.append(Student(name,u_id,group_ids,"unknown"))
+    return students
+
+def wants_groups():
+    # Ask the user if they want the group information
+    while True:
+        answer = input("Do you want the groups? (y/n)")
+        if answer == "y" or answer == "n":
+            return answer
+
+def get_group_categories(course_id):
+    # Get the group categories from a course
     # url:GET|/api/v1/courses/:course_id/group_categories
     c = CanvasRequests(f"/courses/{course_id}/group_categories")
-    print(c.full_url)
     groups = c.get().json()
-    return groups[0]
+    return groups
 
+def get_a_group_category(course_id):
+    # return a group category corresponding to the users choice
+    groups = get_group_categories(course_id)
+    for i, group in enumerate(groups):
+        print(f"({i}) --" , group["name"])
+    while True:
+        try:
+            print(f"\nWhat group do you want to get?")
+            choice = input("> ")
+            print()
+            return groups[int(choice)]
+        except (ValueError, IndexError):
+            print("Enter a digit corresponding to the section")
+
+def get_groups(group_category_id):
+    # Get all of the groups in a group category
+    # url:GET|/api/v1/group_categories/:group_category_id/groups
+    c = CanvasRequests(f"/group_categories/{group_category_id}/groups")
+    params = {
+        "per_page": "100"
+    }
+    groups = c.get(**params).json() 
+    return groups
+
+def group_id2name(groups):
+    d = {}
+    for group in groups:
+        d[group["id"]] = group["name"]
+    return d
+
+def populate_group_name(students, groups , g_id2name):
+    #for each students group_ids we want to find the name for that group
+    # This is really bad doing it this way
+    # Fortunately in my case it is not that much to loop over
+    for s in students:
+        for g_id in s.group_ids:
+            for g in groups:
+                if g_id == g["id"]:
+                    s.chosen_group_name = g_id2name[g_id]
+
+def user_group_category():
+    # url:GET|/api/v1/group_categories/:group_category_id/users
+    pass 
 
 def main():
     # get the course you want
     # ask if you want a specific section or all sections?
     # check if groups?
+    # group id2name
+
     # get the assignments
     # download the assignments
     
@@ -106,24 +180,17 @@ def main():
     section = get_a_section(course["id"])
 
     if section is not None:
-        students = get_section_students(course["id"], section["id"])
+        students = section_students(section["id"])
     else:
-        students = get_all_students(course["id"])
-    
-    group = get_group0(course["id"])
-    print(group)
+        students = all_students(course["id"])
 
-    print()
+    answer = wants_groups()
 
-    group_id = group["id"]
-#https://canvas.wisc.edu/api/v1group_categories/40575/groups
-    # url:GET|/api/v1/group_categories/:group_category_id/groups
-    c = CanvasRequests(f"/group_categories/{group_id}/groups")
-    print(c.full_url)
-
-    response = c.get().json()
-    print(response)
-
+    if answer == "y":
+        group_category = get_a_group_category(course["id"])
+        groups = get_groups(group_category["id"])
+        g_id2name = group_id2name(groups)
+        populate_group_name(students, groups, g_id2name)
 
 if __name__ == "__main__":
     sys.exit(main())
