@@ -5,9 +5,10 @@ import json
 class CanvasRequests:
     # An object that has a modified get request for the API_URL, API_KEY,
     # headers, and the base url https://canvas.wisc.edu/api/v1
-    def __init__(self, url = ""):
-        self.url = url
+    def __init__(self, extension_url = ""):
+        self.extension_url = extension_url
         self.d = self.credentials()
+        self.full_url = self.d["API_URL"] + self.extension_url
 
     def credentials(self):
         # Get the API_URL and API_KEY for canvas credentials
@@ -19,6 +20,5 @@ class CanvasRequests:
     def get(self, **kwargs):
         API_URL = self.d["API_URL"]
         API_KEY = self.d["API_KEY"]
-        full_url = API_URL + self.url
         headers = {"Authorization": "Bearer " + API_KEY}
-        return requests.get(full_url, headers=headers, params=kwargs)
+        return requests.get(self.full_url, headers=headers, params=kwargs)
