@@ -176,9 +176,35 @@ def populate_group_name(students, groups , g_id2name):
                 if g_id == g["id"]:
                     s.chosen_group_name = g_id2name[g_id]
 
-def user_group_category():
-    # url:GET|/api/v1/group_categories/:group_category_id/users
-    pass 
+def get_a_assignment(course_id):
+    published_assignments = get_assignments(course_id)
+    for i, assignment in enumerate(published_assignments):
+        print(f"({i}) --" , assignment["name"])
+    while True:
+        try:
+            print("\nHere are all of the published assignments to the class.")
+            print("What assignment do you want to download the files for?")
+            choice = int(input("> "))
+            if choice < 0: continue
+            return published_assignments[choice]
+        except (ValueError, IndexError):
+            print("Enter a digit corresponding to the published assignment.")
+
+def get_assignments(course_id):
+    # Return a list of assignments for the course that are published and ungraded
+    # url:GET|/api/v1/courses/:course_id/assignments
+    c = CanvasRequests(f"/courses/{course_id}/assignments")
+    params = {
+        "per_page": "100",
+        "bucket": "ungraded" # Won't show assignments that are already graded
+    }
+    all_assignments = c.get(**params).json() 
+    published_assignments = []
+    for a in all_assignments:
+        # I only care about published assignements with points > 0
+        if a["published"] and a["points_possible"] > 0:
+            published_assignments.append(a)
+    return published_assignments
 
 def main():
     course = get_a_course()
@@ -196,6 +222,8 @@ def main():
     # Now have a list of students
     # Either all students or students in one section
     # Either groups or no groups 
+
+    assignments = get_a_assignment(course["id"])
 
 
 
