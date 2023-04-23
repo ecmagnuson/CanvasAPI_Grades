@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import os 
+import urllib.request
 from dataclasses import dataclass
 
 from canvas import CanvasRequests
@@ -207,6 +209,7 @@ def populate_student_submissions(students, assignment, course_id):
     # For a given assignment, populate all students submission_attatchments attribute
     # :calls: `GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions/:user_id
     assignment_id = assignment["id"]
+    dir_name = prompt_directory_name()
     for s in students:
         #submissions = assignment.get_submission(student.ID).attachments
         c = CanvasRequests(f"/courses/{course_id}/assignments/{assignment_id}/submissions/{s.u_id}")
@@ -227,11 +230,30 @@ def populate_student_submissions(students, assignment, course_id):
                     "mime_class": mime_class
                 } 
             )
-            #s.submission_attatchments.append(a)
+        group_dir = prepare_group_directory(s, dir_name)
+        download_submission(s, group_dir)
 
-def download_submissions(students, assignment):
-    #downloads assignments into ./submissions directory
-    pass
+def download_submission(student, group_dir):
+    # Download the submissions from one student for an assignment
+    # The student object already has access to the urls, assignment, etc.
+    # downloads assignments into ./submissions/{group_dir} directory
+    attatchments = student.submission_attatchments
+    for a in attatchments:
+        display_name = a["display_name"]
+        file_path = f"{group_dir}/{student.name}/{display_name}"
+        url = a["url"]
+        urllib.request.urlretrieve(url, file_path)
+        print(f"Downloading assignment for {student.name}")
+
+def prepare_group_directory(student, dir_name):
+    group_dir = f"./submissions/{dir_name}/{student.chosen_group_name}"
+    os.makedirs(f"{group_dir}/{student.name}", exist_ok=True)
+    return group_dir
+
+def prompt_directory_name():
+    # Promp the user for a directory name 
+    dir_name = input("What do you want the assignment names to be?")
+    return dir_name
 
 def main():
     course = get_a_course()
@@ -253,11 +275,6 @@ def main():
     assignment = get_a_assignment(course["id"])
     #download_submissions(students, assignment)
     populate_student_submissions(students, assignment, course["id"])
-
-    for s in students:
-        print(s)
-        print()
-
 
 if __name__ == "__main__":
     main()
