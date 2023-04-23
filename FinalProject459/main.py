@@ -65,8 +65,9 @@ class Student :
     # An object representing some useful attributes for each student
     name: str 
     u_id: str 
-    group_ids: tuple[str]
+    group_ids: list[str]
     chosen_group_name: str
+    submission_attatchments: list[dict[str, str]]
 
 def all_students(course_id):
     # Get all student enrollments for a course
@@ -113,7 +114,7 @@ def populate_student(enrollments):
         name = user["name"]
         u_id = user["id"]
         group_ids = user["group_ids"]
-        students.append(Student(name,u_id,group_ids,"no_group"))
+        students.append(Student(name,u_id,group_ids,"no_group",[]))
     return students
 
 def wants_groups():
@@ -202,6 +203,36 @@ def get_assignments(course_id):
             published_assignments.append(a)
     return published_assignments
 
+def populate_student_submissions(students, assignment, course_id):
+    # For a given assignment, populate all students submission_attatchments attribute
+    # :calls: `GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions/:user_id
+    assignment_id = assignment["id"]
+    for s in students:
+        #submissions = assignment.get_submission(student.ID).attachments
+        c = CanvasRequests(f"/courses/{course_id}/assignments/{assignment_id}/submissions/{s.u_id}")
+        submissions = c.get().json() 
+        try:   
+            # If there is no attatchment (student didn't submit) for this assignment it will crash
+            attatchements = submissions["attachments"]
+        except KeyError:
+            continue
+        for a in attatchements:
+            display_name = a["display_name"]
+            url = a["url"]
+            mime_class = a["mime_class"] # pdf, doc, etc 
+            s.submission_attatchments.append(
+                {
+                    "display_name": display_name,
+                    "url": url,
+                    "mime_class": mime_class
+                } 
+            )
+            #s.submission_attatchments.append(a)
+
+def download_submissions(students, assignment):
+    #downloads assignments into ./submissions directory
+    pass
+
 def main():
     course = get_a_course()
     section = get_a_section(course["id"])
@@ -219,8 +250,13 @@ def main():
     # Either all students or students in one section
     # Either groups or no groups 
 
-    assignments = get_a_assignment(course["id"])
+    assignment = get_a_assignment(course["id"])
+    #download_submissions(students, assignment)
+    populate_student_submissions(students, assignment, course["id"])
 
+    for s in students:
+        print(s)
+        print()
 
 
 if __name__ == "__main__":
