@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-import json
-import os
-import requests
-import sys
 from dataclasses import dataclass
 
 from canvas import CanvasRequests
@@ -228,4 +224,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
