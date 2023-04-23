@@ -64,26 +64,37 @@ def get_sections(course_id):
     sections = c.get().json()
     return sections
 
-@dataclass
-class Student:
+@dataclass(eq=True, unsafe_hash=True)
+class Student :
     # An object representing some useful attributes for each student
     name: str 
     u_id: str 
-    group_ids: list[str]
+    group_ids: tuple[str]
     chosen_group_name: str
 
 def all_students(course_id):
     # Get all student enrollments for a course
     # url:GET|/api/v1/courses/:course_id/enrollments
+    # For some really weird reason when I make this url request it is 
+    # duplicating all of the students. I have no idea why.
+    # This needs to use Pagination because it exceeds the limit of 100 per_page
+    # https://canvas.instructure.com/doc/api/file.pagination.html
     c = CanvasRequests(f"/courses/{course_id}/enrollments")
     params = { 
         "type": ["StudentEnrollment"],
         "include": ["group_ids"],
-        "per_page": "500"
+        "per_page": "100"
     } 
-    enrollments = c.get(**params).json() 
+    enrollments = []
+    while c.full_url:
+        response = c.get(**params) # TODO Figure out why does this GET request duplicate every student??
+        enrollment_response = response.json() 
+        enrollments.extend(enrollment_response)
+        c.full_url = response.links.get("next", {}).get("url", None)
     students = populate_student(enrollments)
-    return students
+    temp = [] 
+    [temp.append(x) for x in students if x not in temp]
+    return temp
 
 def section_students(section_id):
     # Get student enrollments for one section.
@@ -106,7 +117,7 @@ def populate_student(enrollments):
         name = user["name"]
         u_id = user["id"]
         group_ids = user["group_ids"]
-        students.append(Student(name,u_id,group_ids,"unknown"))
+        students.append(Student(name,u_id,group_ids,"no_group"))
     return students
 
 def wants_groups():
@@ -168,14 +179,13 @@ def user_group_category():
     pass 
 
 def main():
-    # get the course you want
-    # ask if you want a specific section or all sections?
-    # check if groups?
-    # group id2name
 
-    # get the assignments
-    # download the assignments
-    
+    # get course
+    # get users - all users or section users
+    #if they dont want groups then ok
+    #if they want all users then get all memberships names
+    #if they want section users then check 
+
     course = get_a_course()
     section = get_a_section(course["id"])
 
@@ -191,6 +201,10 @@ def main():
         groups = get_groups(group_category["id"])
         g_id2name = group_id2name(groups)
         populate_group_name(students, groups, g_id2name)
+
+    for s in students:
+        print(s)
+        print()
 
 if __name__ == "__main__":
     sys.exit(main())
