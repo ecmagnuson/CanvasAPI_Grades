@@ -123,9 +123,11 @@ def populate_student(enrollments):
 def wants_groups():
     # Ask the user if they want the group information
     while True:
-        answer = input("Do you want the groups? (y/n)")
-        if answer == "y" or answer == "n":
-            return answer
+        answer = input("Do you want the groups? (y/n) ")
+        if answer == "y":
+            return True
+        elif answer == "n":
+            return False
 
 def get_group_categories(course_id):
     # Get the group categories from a course
@@ -179,32 +181,23 @@ def user_group_category():
     pass 
 
 def main():
-
-    # get course
-    # get users - all users or section users
-    #if they dont want groups then ok
-    #if they want all users then get all memberships names
-    #if they want section users then check 
-
     course = get_a_course()
     section = get_a_section(course["id"])
-
     if section is not None:
         students = section_students(section["id"])
     else:
         students = all_students(course["id"])
-
-    answer = wants_groups()
-
-    if answer == "y":
+    if wants_groups():
         group_category = get_a_group_category(course["id"])
         groups = get_groups(group_category["id"])
         g_id2name = group_id2name(groups)
         populate_group_name(students, groups, g_id2name)
 
-    for s in students:
-        print(s)
-        print()
+    # Now have a list of students
+    # Either all students or students in one section
+    # Either groups or no groups 
+
+
 
 if __name__ == "__main__":
     sys.exit(main())
