@@ -4,7 +4,7 @@ import json
 
 class CanvasRequests:
     # An object that has a modified get request for the API_URL, API_KEY,
-    # headers, and the base url https://canvas.wisc.edu/api/v1
+    # headers, and the base url of the API_KEY in auth.json
     def __init__(self, extension_url = ""):
         self.extension_url = extension_url
         self.d = self.credentials()
