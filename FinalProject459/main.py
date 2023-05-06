@@ -2,6 +2,7 @@
 
 import os 
 import urllib.request
+import shutil
 from dataclasses import dataclass
 
 from canvas import CanvasRequests
@@ -217,7 +218,7 @@ def populate_student_submissions(students, assignment, course_id):
     # For a given assignment, populate all students submission_attatchments attribute
     # :calls: `GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions/:user_id
     assignment_id = assignment["id"]
-    dir_name = prompt_directory_name()
+    chosen_dir_name = prompt_directory_name()
     for s in students:
         #submissions = assignment.get_submission(student.ID).attachments
         c = CanvasRequests(f"/courses/{course_id}/assignments/{assignment_id}/submissions/{s.u_id}")
@@ -238,18 +239,20 @@ def populate_student_submissions(students, assignment, course_id):
                     "mime_class": mime_class
                 } 
             )
-        group_dir = prepare_group_directory(s, dir_name)
-        download_submission(s, group_dir, dir_name) #TODO this is way overly complicated..
+        group_dir = prepare_group_directory(s, chosen_dir_name)
+        download_submission(s, group_dir, chosen_dir_name) #TODO this is way overly complicated..
 
 def download_submission(student, group_dir, dir_name):
     # Download the submissions from one student for an assignment
     # The student object already has access to the urls, assignment, etc.
     # downloads assignments into ./submissions/{group_dir} directory
+    # Also moves resources to the student path
     attatchments = student.submission_attatchments
+    student_path = f"{group_dir}/{student.name}"
+    move_resources(student_path)
     for a in attatchments:
-        display_name = a["display_name"]
         extension = a["mime_class"] # .docx, .pdf, etc
-        file_path = f"{group_dir}/{student.name}/{student.name}_{dir_name}.{extension}"
+        file_path = f"{student_path}/{student.name}_{dir_name}.{extension}"
         url = a["url"]
         urllib.request.urlretrieve(url, file_path)
         print(f"Downloading assignment for {student.name}")
@@ -264,6 +267,16 @@ def prompt_directory_name():
     print("What do you want the assignment names to be?\n")
     dir_name = input("> ")
     return dir_name
+
+def move_resources(student_dir):
+    #Move all of the "~./resources" in the resource directory into the student_dir
+    name = student_dir.split("/")[-1]
+    try:
+        resources = os.listdir("./resources")
+        for r in resources:
+            shutil.copyfile(f"./resources/{r}", f"{student_dir}/{name}_{r}")
+    except FileNotFoundError:
+        return 
 
 def main():
     course = get_a_course() # Initial prompt asking for class
