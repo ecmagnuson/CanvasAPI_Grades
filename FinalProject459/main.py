@@ -45,6 +45,7 @@ def wants_sections():
 
 def get_a_section(course_id):
     #return a Section object corresponding to the user input
+    print() # NOTE just to make spacing look nicer, but this is ugly
     sections = get_sections(course_id)
     for i, section in enumerate(sections):
         print(f"({i}) --" , section["name"])
@@ -126,7 +127,7 @@ def populate_student(enrollments):
 def wants_groups():
     # Ask the user if they want the group information
     while True:
-        answer = input("Do you want the groups? (y/n) ")
+        answer = input("Do you want the groups? (y/n)")
         if answer == "y":
             return True
         elif answer == "n":
@@ -142,6 +143,7 @@ def get_group_categories(course_id):
 def get_a_group_category(course_id):
     # return a group category corresponding to the users choice
     groups = get_group_categories(course_id)
+    print() #NOTE another blank print for spacing
     for i, group in enumerate(groups):
         print(f"({i}) --" , group["name"])
     while True:
@@ -179,13 +181,13 @@ def populate_group_name(students, groups , g_id2name):
                 if g_id == g["id"]:
                     s.chosen_group_name = g_id2name[g_id]
 
-def get_a_assignment(course_id):
+def get_an_assignment(course_id):
     published_assignments = get_assignments(course_id)
     for i, assignment in enumerate(published_assignments):
         print(f"({i}) --" , assignment["name"])
     while True:
         try:
-            print("\nHere are all of the published assignments to the class.")
+            print("\nHere are all of the published assignments to the class that are ungraded.")
             print("What assignment do you want to download the files for?")
             choice = int(input("> "))
             if choice < 0: continue
@@ -256,7 +258,8 @@ def prepare_group_directory(student, dir_name):
 
 def prompt_directory_name():
     # Promp the user for a directory name 
-    dir_name = input("What do you want the assignment names to be?")
+    print("What do you want the assignment names to be?\n")
+    dir_name = input("> ")
     return dir_name
 
 def main():
@@ -278,7 +281,7 @@ def main():
     # Either all students or students in one section
     # Either groups or no groups 
 
-    assignment = get_a_assignment(course["id"])
+    assignment = get_an_assignment(course["id"])
     populate_student_submissions(students, assignment, course["id"])
 
 if __name__ == "__main__":
