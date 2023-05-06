@@ -95,7 +95,7 @@ def all_students(course_id):
         enrollment_response = response.json() 
         enrollments.extend(enrollment_response)
         c.full_url = response.links.get("next", {}).get("url", None)
-    students = populate_student(enrollments)
+    students = populate_students(enrollments)
     temp = [] 
     [temp.append(x) for x in students if x not in temp]
     return temp
@@ -110,15 +110,17 @@ def section_students(section_id):
         "per_page": "100"
     } 
     enrollments = c.get(**params).json() 
-    students = populate_student(enrollments)
+    students = populate_students(enrollments)
     return students
 
-def populate_student(enrollments):
+def populate_students(enrollments):
     # create the Student dataclass objects from a list of enrollements
     students = []
     for e in enrollments:
         user = e["user"]
         name = user["name"]
+        #Format name!
+        name = name.title().replace(" ", "")
         u_id = user["id"]
         group_ids = user["group_ids"]
         students.append(Student(name,u_id,group_ids,"no_group",[]))
