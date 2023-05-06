@@ -1,3 +1,5 @@
+![gif](./example.gif)
+
 Initially I used the canvas API python repo that is on github, but for this project I want to directly use the requests library
 
 ## How to use this program:
