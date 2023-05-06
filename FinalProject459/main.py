@@ -239,16 +239,17 @@ def populate_student_submissions(students, assignment, course_id):
                 } 
             )
         group_dir = prepare_group_directory(s, dir_name)
-        download_submission(s, group_dir)
+        download_submission(s, group_dir, dir_name) #TODO this is way overly complicated..
 
-def download_submission(student, group_dir):
+def download_submission(student, group_dir, dir_name):
     # Download the submissions from one student for an assignment
     # The student object already has access to the urls, assignment, etc.
     # downloads assignments into ./submissions/{group_dir} directory
     attatchments = student.submission_attatchments
     for a in attatchments:
         display_name = a["display_name"]
-        file_path = f"{group_dir}/{student.name}/{display_name}"
+        extension = a["mime_class"] # .docx, .pdf, etc
+        file_path = f"{group_dir}/{student.name}/{student.name}_{dir_name}.{extension}"
         url = a["url"]
         urllib.request.urlretrieve(url, file_path)
         print(f"Downloading assignment for {student.name}")
