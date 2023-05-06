@@ -130,7 +130,7 @@ def populate_students(enrollments):
 def wants_groups():
     # Ask the user if they want the group information
     while True:
-        answer = input("Do you want the groups? (y/n)")
+        answer = input("Do you want the groups? (y/n) ")
         if answer == "y":
             return True
         elif answer == "n":
@@ -264,7 +264,7 @@ def prepare_group_directory(student, dir_name):
 
 def prompt_directory_name():
     # Promp the user for a directory name 
-    print("What do you want the assignment names to be?\n")
+    print("\nWhat do you want the renamed submissions to be named?")
     dir_name = input("> ")
     return dir_name
 
