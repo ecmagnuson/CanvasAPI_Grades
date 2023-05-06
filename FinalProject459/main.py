@@ -3,6 +3,7 @@
 import os 
 import urllib.request
 import shutil
+import sys
 from dataclasses import dataclass
 
 from canvas import CanvasRequests
@@ -250,12 +251,23 @@ def download_submission(student, group_dir, dir_name):
     attatchments = student.submission_attatchments
     student_path = f"{group_dir}/{student.name}"
     move_resources(student_path)
-    for a in attatchments:
-        extension = a["mime_class"] # .docx, .pdf, etc
+    if len(attatchments) == 1: # If only one attatchment then can rename
+        extension = attatchments[0]["mime_class"] # .docx, .pdf, etc
         file_path = f"{student_path}/{student.name}_{dir_name}.{extension}"
-        url = a["url"]
+        url = attatchments[0]["url"]
         urllib.request.urlretrieve(url, file_path)
-        print(f"Downloading assignment for {student.name}")
+        message = f"Downloading assignment for {student.name}"
+        print(message)
+        sys.stdout.write("\033[K") # Clear to the end of line
+    else:
+        for a in attatchments: # Default to original name if more than 1 attatchment
+            file_name = a["display_name"]
+            file_path = f"{student_path}/{file_name}"
+            url = a["url"]
+            urllib.request.urlretrieve(url, file_path)
+            message = f"{student.name} has more than 1 attatchment for this assignment, defaulting to original submission names."
+            print(message)
+            sys.stdout.write("\033[K") # Clear to the end of line
 
 def prepare_group_directory(student, dir_name):
     group_dir = f"./submissions/{dir_name}/{student.chosen_group_name}"
