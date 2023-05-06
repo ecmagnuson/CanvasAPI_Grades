@@ -21,8 +21,8 @@ This program is procedural. After running it, it does the following:
 
 1. `pip install -r requirements.txt` to install the requests library
 2. In auth.json set your API_URL accordingly:
-	- API_URL is your url for Canvas
-	- i.e. "https://canvas.wisc.edu/"
+	- API_URL is your url for Canvas plus "/api/v1"
+	- i.e. "https://canvas.wisc.edu/api/v1"
 	- If you are using UW Madison Canvas it is already set
 	
 3. In auth.json set your API_KEY accordingly:
