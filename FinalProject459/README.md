@@ -1,38 +1,42 @@
 ![gif](./example.gif)
 
-Initially I used the canvas API python repo that is on github, but for this project I want to directly use the requests library
+Initially I used a Canvas API Python repository that is on [github](https://github.com/ucfopen/canvasapi), but for this project I want to directly use the [requests](https://pypi.org/project/requests/) library. My original project that I wrote a while ago is in the `old` directory. This new one makes use of a custom object I made in canvas.py that uses a modified get request via the requests package. I spent a significant time going through the actual [Canvas LMS REST API](https://canvas.instructure.com/doc/api/) to figure out the URLs I would need to call to get the information I needed. 
+
+This program is procedural. After running it, it does the following:
+1. Prompt get a course (required)
+2. Prompt get a section (this is not required)
+3. Prompt get groups in course or section (this is not required)
+4. Get a specific assignment (required)
+5. Prompt a specific name to be added to every assignment as it is renamed
+6. Download that assignment
+
+* It will only show you classes where you are a teacher or TA
+* It is not required to get only students in one section, or their groups info, but I make use of this (as can be seen in the gif)
+* It prompts you for only assignments that are visible to students and that have not been graded
+* It allows you to rename the assignments to anything you want, but defaults to original student assignment names when there is more than 1 submission for an assignment
+* Inside of the `resources` directory you can place any file you want, and it will be copied into each students directory. I place my grading sheets in there.
+ 
 
 ## How to use this program:
 
-1. In Auth.txt set your API_URL accordingly:
+1. `pip install -r requirements.txt` to install the requests library
+2. In auth.json set your API_URL accordingly:
 	- API_URL is your url for Canvas
 	- i.e. "https://canvas.wisc.edu/"
+	- If you are using UW Madison Canvas it is already set
 	
-2. In Auth.txt set your API_KEY accordingly:
+3. In auth.json set your API_KEY accordingly:
 	- On the left hand side of your Canvas home page:
-		+ Account > Settings
+		+ [Account > Settings](https://canvas.wisc.edu/profile/settings)
 		
  	- Scroll down and click "New Access Token"
  	- Give it a name and expiration date 
  	- Generate token
 	 	+ It will be a long string of characters
- 	- Copy down the token and put it into Auth.txt API_KEY
+ 	- Copy down the token and put it into auth.json API_KEY
 	- i.e. : "8dj2j3j5k4k399dkdmkdmslsldfkjsdflsdfl"
-	- Keep the quotes in Auth.txt
+	- Keep the quotes in auth.json
  	
-3. Any file that you place into the `resources` directory will be copied into each students assignment, so if you have any sort of rubric or feedback sheet you can place it there.
-4. Run the program and it will guide you through the process inside of a terminal.
-
-
---------------------
-
-# TODO 
-
-1. It's really messy so it needs to be refactored
-2. I don't account for if a submission was late
-3. I haven't checked for comments
-4. I haven't checked for multiple submissions or newest submissions
-5. I gave this program to my other TA's to use, but I didn't program it defensively enough, so that if for example they give it a value that is not accepted it will crash and throw an unintelligable error to them vs. saying something like "invalid response, enter the number corresponding to the class you want to pick", etc
-6. I need to do the same for accepting the API key, and the error it throws if it is invalid
-7. I want to figure out only showing assignments that require students to submit files. For example, I shouldn't see a prompt about downloading files from an in canvas quiz that doesn't require a submission and is graded automatically.
+4. Any file that you place into the `resources` directory will be copied into each students assignment, so if you have any sort of rubric or feedback sheet you can place it there.
+5. Run the program and it will guide you through the process inside of a terminal. This can be seen in the example gif above.
 
