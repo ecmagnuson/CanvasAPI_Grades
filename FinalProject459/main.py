@@ -34,6 +34,15 @@ def get_courses():
     courses = c.get(**params).json()
     return courses
 
+def wants_sections():
+    # Ask the user if they want the group information
+    while True:
+        answer = input("Do you want a specific section from this class? (y/n) ")
+        if answer == "y":
+            return True
+        elif answer == "n":
+            return False
+
 def get_a_section(course_id):
     #return a Section object corresponding to the user input
     sections = get_sections(course_id)
@@ -42,15 +51,10 @@ def get_a_section(course_id):
     while True:
         try:
             print(f"\nWhat section do you want to get?")
-            print("You can leave this blank if you want to get all sections.")
             choice = input("> ")
             print()
-            if choice == "":
-                # No desired section
-                return None
-            else:
-                #choice = int(choice) # TODO this is a bit hacky
-                return sections[int(choice)]
+            #choice = int(choice) # TODO this is a bit hacky
+            return sections[int(choice)]
         except (ValueError, IndexError):
             print("Enter a digit corresponding to the section")
 
@@ -256,13 +260,15 @@ def prompt_directory_name():
     return dir_name
 
 def main():
-    course = get_a_course()
-    section = get_a_section(course["id"])
-    if section is not None:
+    course = get_a_course() # Initial prompt asking for class
+
+    if wants_sections(): #Get only students from 1 section
+        section = get_a_section(course["id"])
         students = section_students(section["id"])
-    else:
+    else: # Get all students
         students = all_students(course["id"])
-    if wants_groups():
+
+    if wants_groups(): # Get group info for each student
         group_category = get_a_group_category(course["id"])
         groups = get_groups(group_category["id"])
         g_id2name = group_id2name(groups)
@@ -273,7 +279,6 @@ def main():
     # Either groups or no groups 
 
     assignment = get_a_assignment(course["id"])
-    #download_submissions(students, assignment)
     populate_student_submissions(students, assignment, course["id"])
 
 if __name__ == "__main__":
